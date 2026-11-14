@@ -16,5 +16,48 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      /* Demo seeding, GitHub Pages build only. A first-time visitor on
+         <user>.github.io lands with an empty roster, and every lineup question
+         answers "set your roster first". This fills a legal starting lineup
+         once from the demo API so the first click shows the product working.
+         It never runs on the Netlify build, on localhost, or for a visitor who
+         already has a saved roster. Delete this block to turn it off. */
+      (function () {
+        if (!/\.github\.io$/.test(location.hostname)) return;
+        var KEY = 'sunday.roster.v1';
+        var TRIED = 'sunday.demoSeed.v1';
+        try {
+          if (localStorage.getItem(KEY) || sessionStorage.getItem(TRIED)) return;
+          sessionStorage.setItem(TRIED, '1');
+        } catch (error) {
+          return;
+        }
+        fetch('https://nfl-demo-api.vercel.app/api/leaderboard?format=ppr&limit=200')
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            var want = { QB: 1, RB: 2, WR: 2, TE: 1 };
+            var picked = [];
+            Object.keys(want).forEach(function (position) {
+              (data.items || [])
+                .filter(function (player) {
+                  return player.position === position;
+                })
+                .slice(0, want[position])
+                .forEach(function (player) {
+                  picked.push(player);
+                });
+            });
+            if (!picked.length) return;
+            localStorage.setItem(KEY, JSON.stringify(picked));
+            location.reload();
+          })
+          .catch(function () {
+            /* a demo without a seeded roster still works; the visitor adds players */
+          });
+      })();
+    </script>
   </body>
 </html>
