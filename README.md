@@ -15,8 +15,15 @@ prospective client without a hosting account behind it.
 
 Rebuild (from the private source repo):
 
-    PAGES_BASE=/nfl-demo/ VITE_API_BASE=https://nfl-demo-api.vercel.app npm run build
-    rsync -a --delete dist/ <this repo>/ && cp index.html 404.html
+    npm run build:pages          # PAGES_BASE=/nfl-demo/ + VITE_API_BASE already set
+    rsync -a --delete --exclude .git dist/ <this repo>/
+    cp index.html 404.html && git commit -am "rebuild
 
 The 404.html is a copy of index.html so any deep link lands on the app instead
 of GitHub's 404 page. `.nojekyll` keeps every file served byte for byte.
+
+First-visit behaviour: the built page carries a small inline script (in the
+source repo's index.html) that fills a legal starting lineup the first time a
+visitor opens it on a *.github.io host, then reloads once. Without it every
+lineup question answers "set your roster first". It never runs on Netlify,
+localhost, or for a visitor with a saved roster.
